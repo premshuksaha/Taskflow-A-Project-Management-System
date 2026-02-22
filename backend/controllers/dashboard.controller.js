@@ -6,12 +6,14 @@ exports.getDashboardStats = async (req, res) => {
 
     try {
         const projectCount = await Project.countDocuments({ workspaceId });
+        const completedProjectsCount = await Project.countDocuments({ workspaceId, status: 'COMPLETED' });
         const activeTasksCount = await Task.countDocuments({ workspaceId, status: { $ne: 'DONE' } });
         const completedTasksCount = await Task.countDocuments({ workspaceId, status: 'DONE' });
 
         // Basic stats for the dashboard
         res.json({
             projectCount,
+            completedProjectsCount,
             activeTasksCount,
             completedTasksCount
         });

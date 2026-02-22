@@ -11,7 +11,7 @@ export default function StatsGrid() {
 
     const [stats, setStats] = useState({
         totalProjects: 0,
-        activeProjects: 0,
+        activeTasks: 0,
         completedProjects: 0,
         myTasks: 0,
         overdueIssues: 0,
@@ -67,8 +67,8 @@ export default function StatsGrid() {
 
                 setStats({
                     totalProjects: data.projectCount || 0,
-                    activeProjects: data.activeTasksCount || 0,
-                    completedProjects: data.completedTasksCount || 0,
+                    activeTasks: data.activeTasksCount || 0,
+                    completedProjects: data.completedProjectsCount || 0,
                     myTasks: myTasksCount,
                     overdueIssues: 0, // Placeholder
                 });

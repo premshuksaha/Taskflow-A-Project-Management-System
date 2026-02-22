@@ -10,7 +10,6 @@ const workspaceSchema = new mongoose.Schema({
     ownerId: { type: String, ref: 'User', required: true },
     image_url: { type: String, default: "" },
     plan: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan' },
-    subscriptionPeriodEnd: { type: Date },
 }, { timestamps: true });
 
 workspaceSchema.pre('save', async function() {

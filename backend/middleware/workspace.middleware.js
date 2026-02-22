@@ -188,6 +188,94 @@ const checkProjectPermission = async (req, res, next) => {
 };
 
 /**
+ * Middleware to check if user is a member of a workspace via project access
+ */
+const checkProjectMember = async (req, res, next) => {
+    try {
+        const projectId = req.params.projectId || req.body.projectId;
+        const userId = req.user._id;
+
+        if (!projectId) {
+            return res.status(400).json({ message: 'Project ID is required' });
+        }
+
+        const project = await Project.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        const workspaceId = project.workspaceId;
+
+        const workspace = await Workspace.findOne({
+            _id: workspaceId,
+            ownerId: userId
+        });
+
+        if (workspace) {
+            return next();
+        }
+
+        const membership = await WorkspaceMember.findOne({
+            workspaceId,
+            userId
+        });
+
+        if (!membership) {
+            return res.status(403).json({ message: 'You are not a member of this workspace' });
+        }
+
+        next();
+    } catch (error) {
+        console.error('Error checking project membership:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+/**
+ * Middleware to check if user is a member of a workspace via task access
+ */
+const checkTaskMember = async (req, res, next) => {
+    try {
+        const taskId = req.params.taskId || req.body.taskId;
+        const userId = req.user._id;
+
+        if (!taskId) {
+            return res.status(400).json({ message: 'Task ID is required' });
+        }
+
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        const workspaceId = task.workspaceId;
+
+        const workspace = await Workspace.findOne({
+            _id: workspaceId,
+            ownerId: userId
+        });
+
+        if (workspace) {
+            return next();
+        }
+
+        const membership = await WorkspaceMember.findOne({
+            workspaceId,
+            userId
+        });
+
+        if (!membership) {
+            return res.status(403).json({ message: 'You are not a member of this workspace' });
+        }
+
+        next();
+    } catch (error) {
+        console.error('Error checking task membership:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+/**
  * Middleware to check if user is workspace admin for task deletion
  * Extracts workspaceId from the task's project
  */
@@ -241,5 +329,7 @@ module.exports = {
     checkWorkspaceMember, 
     checkTaskUpdatePermission,
     checkProjectPermission,
-    checkTaskDeletePermission
+    checkTaskDeletePermission,
+    checkProjectMember,
+    checkTaskMember
 };

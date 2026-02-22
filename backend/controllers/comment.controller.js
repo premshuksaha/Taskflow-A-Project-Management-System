@@ -83,6 +83,31 @@ exports.updateComment = async (req, res) => {
             return res.status(403).json({ message: 'You can only edit your own comments' });
         }
 
+        // Verify user is still a member of the task's workspace
+        const task = await Task.findById(comment.taskId);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        const Workspace = require('../models/workspace.model');
+        const WorkspaceMember = require('../models/workspaceMember.model');
+
+        const workspace = await Workspace.findOne({
+            _id: task.workspaceId,
+            ownerId: userId
+        });
+
+        if (!workspace) {
+            const membership = await WorkspaceMember.findOne({
+                workspaceId: task.workspaceId,
+                userId
+            });
+
+            if (!membership) {
+                return res.status(403).json({ message: 'You are not a member of this workspace' });
+            }
+        }
+
         comment.content = content.trim();
         await comment.save();
         await comment.populate('userId', 'name email image');
@@ -110,6 +135,31 @@ exports.deleteComment = async (req, res) => {
         // Only comment creator can delete
         if (comment.userId !== userId) {
             return res.status(403).json({ message: 'You can only delete your own comments' });
+        }
+
+        // Verify user is still a member of the task's workspace
+        const task = await Task.findById(comment.taskId);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        const Workspace = require('../models/workspace.model');
+        const WorkspaceMember = require('../models/workspaceMember.model');
+
+        const workspace = await Workspace.findOne({
+            _id: task.workspaceId,
+            ownerId: userId
+        });
+
+        if (!workspace) {
+            const membership = await WorkspaceMember.findOne({
+                workspaceId: task.workspaceId,
+                userId
+            });
+
+            if (!membership) {
+                return res.status(403).json({ message: 'You are not a member of this workspace' });
+            }
         }
 
         await Comment.findByIdAndDelete(commentId);

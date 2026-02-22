@@ -2,6 +2,8 @@ const User = require('../models/user.model');
 const Workspace = require('../models/workspace.model');
 const WorkspaceMember = require('../models/workspaceMember.model');
 const SubscriptionPlan = require('../models/subscriptionPlan.model');
+const Subscription = require('../models/subscription.model');
+const { syncUsageCounts } = require('../utils/usageUtils');
 const jwt = require('jsonwebtoken');
 
 const generateToken = (userId) => {
@@ -40,6 +42,18 @@ const signup = async (req, res) => {
             role: 'ADMIN'
         });
         await adminMember.save();
+
+        if (defaultPlan) {
+            await Subscription.create({
+                workspaceId: workspace._id,
+                planId: defaultPlan._id,
+                status: 'ACTIVE',
+                periodStart: new Date(),
+                periodEnd: null
+            });
+        }
+
+        await syncUsageCounts(workspace._id);
 
         const token = generateToken(user._id);
 

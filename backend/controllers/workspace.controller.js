@@ -2,7 +2,8 @@ const Workspace = require('../models/workspace.model');
 const WorkspaceMember = require('../models/workspaceMember.model');
 const WorkspaceInvite = require('../models/workspaceInvite.model');
 const User = require('../models/user.model');
-const { hasReachedLimit } = require('../utils/subscriptionUtils');
+const { getWorkspacePlan, isSubscriptionActive } = require('../utils/subscriptionUtils');
+const { checkAndIncrementUsage, getUsageDoc } = require('../utils/usageUtils');
 const { sendInviteEmail } = require('../utils/emailService');
 const { generateInviteToken, calculateExpirationDate } = require('../utils/inviteTokenUtils');
 
@@ -37,11 +38,13 @@ exports.sendInvite = async (req, res) => {
             return res.status(404).json({ message: 'Workspace not found' });
         }
 
-        // Check subscription limits
-        const memberCount = await WorkspaceMember.countDocuments({ workspaceId });
-        
-        // Check if adding one more member would exceed the limit
-        if (await hasReachedLimit(workspaceId, 'max_members', memberCount + 1)) {
+        const plan = await getWorkspacePlan(workspaceId);
+        if (!plan) {
+            return res.status(403).json({ message: 'No subscription plan assigned to this workspace.' });
+        }
+
+        const usage = await getUsageDoc(workspaceId);
+        if (plan.maxMembers !== 0 && usage.counts.members >= plan.maxMembers) {
             return res.status(403).json({ message: 'Member limit reached for your current subscription plan.' });
         }
 
@@ -138,6 +141,10 @@ exports.acceptInvite = async (req, res) => {
             return res.status(410).json({ message: 'Invitation has expired' });
         }
 
+        if (!await isSubscriptionActive(invite.workspaceId._id)) {
+            return res.status(403).json({ message: 'Subscription is expired. Please renew to continue.' });
+        }
+
         // Check if invited email matches
         if (invite.email.toLowerCase() !== email.toLowerCase()) {
             return res.status(400).json({ message: 'Email does not match invitation' });
@@ -168,6 +175,16 @@ exports.acceptInvite = async (req, res) => {
             if (existingMember) {
                 return res.status(400).json({ message: 'User is already a member of this workspace' });
             }
+        }
+
+        const plan = await getWorkspacePlan(invite.workspaceId._id);
+        if (!plan) {
+            return res.status(403).json({ message: 'No subscription plan assigned to this workspace.' });
+        }
+
+        const memberAllowed = await checkAndIncrementUsage(invite.workspaceId._id, 'members', plan.maxMembers);
+        if (!memberAllowed) {
+            return res.status(403).json({ message: 'Member limit reached for your current subscription plan.' });
         }
 
         // Add user to workspace
@@ -252,8 +269,22 @@ exports.addMember = async (req, res) => {
 exports.getWorkspacesByUser = async (req, res) => {
     try {
         const userId = req.params.userId;
-        const workspaces = await Workspace.find({ ownerId: userId });
-        res.json(workspaces);
+        const requesterId = req.user._id;
+
+        // Only allow users to access their own workspaces, or allow admins to access any user's workspaces
+        if (userId !== requesterId) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        // Return workspaces where user is owner or member
+        const ownedWorkspaces = await Workspace.find({ ownerId: userId }).populate('plan');
+        
+        const memberships = await WorkspaceMember.find({ userId }).populate('workspaceId');
+        const memberWorkspaces = memberships.map(m => m.workspaceId);
+
+        const allWorkspaces = [...ownedWorkspaces, ...memberWorkspaces];
+
+        res.json(allWorkspaces);
     } catch (error) {
         console.error('Error fetching workspaces:', error);
         res.status(500).json({ message: 'Internal server error' });

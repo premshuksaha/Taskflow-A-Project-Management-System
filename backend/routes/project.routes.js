@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth.middleware');
-const { checkWorkspaceAdmin, checkProjectPermission } = require('../middleware/workspace.middleware');
+const { checkWorkspaceAdmin, checkProjectPermission, checkWorkspaceMember } = require('../middleware/workspace.middleware');
+const { requireActiveSubscription, enforceUsageLimit } = require('../middleware/subscription.middleware');
 const { createProject, getProjects, updateProject, deleteProject, addProjectMember } = require('../controllers/project.controller');
 
 // Create a new project (Admin only)
-router.post('/add', protect, checkWorkspaceAdmin, createProject);
+router.post('/add', protect, requireActiveSubscription, checkWorkspaceAdmin, enforceUsageLimit('projects'), createProject);
 
 // Get all projects for the authenticated user
-router.get('/get/:workspaceId', protect, getProjects);
+router.get('/get/:workspaceId', protect, checkWorkspaceMember, getProjects);
 
 // Update a project (Admin only)
 router.put('/update/:projectId', protect, checkProjectPermission, updateProject);

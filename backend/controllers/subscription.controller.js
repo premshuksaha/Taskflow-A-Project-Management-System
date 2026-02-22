@@ -1,5 +1,6 @@
 const Workspace = require('../models/workspace.model');
 const SubscriptionPlan = require('../models/subscriptionPlan.model');
+const Subscription = require('../models/subscription.model');
 
 // Upgrade or change workspace plan (Demo purpose)
 const upgradeWorkspacePlan = async (req, res) => {
@@ -16,11 +17,25 @@ const upgradeWorkspacePlan = async (req, res) => {
             return res.status(404).json({ message: 'Workspace not found' });
         }
 
-        workspace.plan = plan._id;
+        // Expire any active subscriptions for this workspace
+        await Subscription.updateMany(
+            { workspaceId, status: 'ACTIVE' },
+            { status: 'EXPIRED', canceledAt: new Date() }
+        );
+
         // Mock a 30-day period for demo
         const periodEnd = new Date();
         periodEnd.setDate(periodEnd.getDate() + 30);
-        workspace.subscriptionPeriodEnd = periodEnd;
+
+        await Subscription.create({
+            workspaceId,
+            planId: plan._id,
+            status: 'ACTIVE',
+            periodStart: new Date(),
+            periodEnd
+        });
+
+        workspace.plan = plan._id;
 
         await workspace.save();
 

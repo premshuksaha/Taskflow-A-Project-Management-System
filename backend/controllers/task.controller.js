@@ -1,6 +1,6 @@
 const Task = require('../models/task.model');
 const ProjectMember = require('../models/projectMember.model');
-const { hasReachedLimit } = require('../utils/subscriptionUtils');
+const { decrementUsage } = require('../utils/usageUtils');
 
 // Create a task
 const createTask = async (req, res) => {
@@ -9,16 +9,6 @@ const createTask = async (req, res) => {
 
         if (!title || !projectId || !workspaceId) {
             return res.status(400).json({ message: 'Title, Project ID, and Workspace ID are required' });
-        }
-
-        // Check subscription limits
-        const currentTaskCount = await Task.countDocuments({ workspaceId });
-        const reachedLimit = await hasReachedLimit(workspaceId, 'max_tasks', currentTaskCount);
-        
-        if (reachedLimit) {
-            return res.status(403).json({ 
-                message: 'Task creation limit reached for your current plan. Please upgrade to PRO for more tasks.' 
-            });
         }
 
         // Validate assignee is a project member
@@ -119,6 +109,7 @@ const deleteTask = async (req, res) => {
     try {
         const deletedTask = await Task.findByIdAndDelete(taskId);
         if (!deletedTask) return res.status(404).json({ message: 'Task not found' });
+        await decrementUsage(deletedTask.workspaceId, 'tasks');
         res.json({ message: 'Task deleted successfully' });
     } catch (error) {
         console.error('Error deleting task:', error);

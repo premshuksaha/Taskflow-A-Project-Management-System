@@ -1,5 +1,5 @@
 const Project = require('../models/project.model');
-const { hasReachedLimit } = require('../utils/subscriptionUtils');
+const { decrementUsage } = require('../utils/usageUtils');
 
 //Get all projects in a workspace for the logged in user
 exports.getProjects = async (req, res) => {
@@ -21,12 +21,6 @@ exports.createProject = async (req, res) => {
     const ProjectMember = require('../models/projectMember.model');
 
     try {
-        // Check if workspace has reached project limit
-        const currentProjectCount = await Project.countDocuments({ workspaceId });
-        if (await hasReachedLimit(workspaceId, 'max_projects', currentProjectCount)) {
-            return res.status(403).json({ message: 'Project creation limit reached for your subscription plan.' });
-        }
-
         const newProject = new Project({
             name,
             description,
@@ -96,6 +90,7 @@ exports.deleteProject = async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
+        await decrementUsage(deletedProject.workspaceId, 'projects');
         res.json({ message: 'Project deleted successfully' });
     } catch (error) {
         console.error('Error deleting project:', error);
