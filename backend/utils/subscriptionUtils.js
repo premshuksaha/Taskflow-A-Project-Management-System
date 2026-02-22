@@ -16,8 +16,29 @@ const getActiveSubscription = async (workspaceId) => {
     if (!subscription) return null;
 
     if (isExpired(subscription)) {
+        // Mark expired subscription
         subscription.status = 'EXPIRED';
         await subscription.save();
+
+        // Auto-downgrade to FREE plan
+        const freePlan = await SubscriptionPlan.findOne({ slug: 'FREE' });
+        if (freePlan) {
+            // Create new FREE subscription
+            const freeSubscription = await Subscription.create({
+                workspaceId,
+                planId: freePlan._id,
+                status: 'ACTIVE',
+                periodStart: new Date(),
+                periodEnd: null // FREE plan doesn't expire
+            });
+
+            // Update workspace to point to FREE plan
+            await Workspace.findByIdAndUpdate(workspaceId, { plan: freePlan._id });
+
+            // Return populated FREE subscription
+            return await freeSubscription.populate('planId');
+        }
+
         return null;
     }
 
@@ -26,12 +47,13 @@ const getActiveSubscription = async (workspaceId) => {
 
 const getWorkspacePlan = async (workspaceId) => {
     const activeSubscription = await getActiveSubscription(workspaceId);
+    // Active subscription always exists due to auto-downgrade to FREE on expiration
     if (activeSubscription?.planId) return activeSubscription.planId;
 
+    // Fallback to workspace plan reference (for legacy data)
     const workspace = await Workspace.findById(workspaceId).populate('plan');
     if (!workspace) return null;
 
-    // If for some reason the workspace doesn't have a plan link, look for default
     if (!workspace.plan) {
         return await SubscriptionPlan.findOne({ isDefault: true });
     }
@@ -41,12 +63,8 @@ const getWorkspacePlan = async (workspaceId) => {
 
 const isSubscriptionActive = async (workspaceId) => {
     const activeSubscription = await getActiveSubscription(workspaceId);
-    if (activeSubscription) return true;
-
-    const workspace = await Workspace.findById(workspaceId);
-    if (!workspace) return false;
-
-    return Boolean(workspace.plan);
+    // Auto-downgrade to FREE ensures there's always a subscription
+    return Boolean(activeSubscription);
 };
 
 const isFeatureAllowed = async (workspaceId, featureName) => {

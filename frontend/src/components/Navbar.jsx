@@ -14,6 +14,22 @@ const Navbar = ({ setIsSidebarOpen }) => {
     const isPro = currentWorkspace?.plan?.slug === "PRO";
     const isAdmin = currentWorkspace?.role === 'ADMIN';
 
+    // Format expiration date
+    const formatExpirationDate = (dateString) => {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        const today = new Date();
+        const diffTime = date - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) return 'Expired';
+        if (diffDays === 0) return 'Expires today';
+        if (diffDays === 1) return 'Expires tomorrow';
+        return `Expires in ${diffDays}d`;
+    };
+
+    const expirationText = formatExpirationDate(currentWorkspace?.subscription?.periodEnd);
+
     // Generate user initials
     const getUserInitials = (name) => {
         if (!name) return 'U';
@@ -63,10 +79,16 @@ const Navbar = ({ setIsSidebarOpen }) => {
                             {isPro ? (
                                 <>
                                     <ZapIcon size={12} className="fill-current" />
-                                    PRO
+                                    <div className="flex flex-col gap-0.5">
+                                        <span>PRO</span>
+                                        {expirationText && <span className="text-[10px] opacity-80">{expirationText}</span>}
+                                    </div>
                                 </>
                             ) : (
-                                "FREE PLAN"
+                                <>
+                                    <span>FREE PLAN</span>
+                                    {expirationText && <span className="text-[10px] opacity-80">{expirationText}</span>}
+                                </>
                             )}
                         </Link>
                     )}

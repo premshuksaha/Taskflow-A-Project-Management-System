@@ -44,13 +44,19 @@ const signup = async (req, res) => {
         await adminMember.save();
 
         if (defaultPlan) {
-            await Subscription.create({
+            const newSubscription = await Subscription.create({
                 workspaceId: workspace._id,
                 planId: defaultPlan._id,
                 status: 'ACTIVE',
                 periodStart: new Date(),
                 periodEnd: null
             });
+
+            workspace.subscription = {
+                status: newSubscription.status,
+                periodEnd: newSubscription.periodEnd,
+                planName: defaultPlan.name
+            };
         }
 
         await syncUsageCounts(workspace._id);
@@ -77,7 +83,23 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const workspace = await Workspace.findOne({ ownerId: user._id });
+        const workspace = await Workspace.findOne({ ownerId: user._id }).populate('plan').lean();
+        
+        // Get subscription info
+        const Subscription = require('../models/subscription.model');
+        const subscription = workspace ? await Subscription.findOne({
+            workspaceId: workspace._id,
+            status: 'ACTIVE'
+        }).populate('planId').lean() : null;
+
+        if (workspace && subscription) {
+            workspace.subscription = {
+                status: subscription.status,
+                periodEnd: subscription.periodEnd,
+                planName: subscription.planId?.name
+            };
+        }
+
         const token = generateToken(user._id);
 
         res.json({
@@ -124,14 +146,31 @@ const getProfile = async (req, res) => {
         // Combine all unique workspaces
         const allWorkspaceIds = [...new Set([...workspaces.map(w => w._id), ...memberWorkspaceIds])];
         const allWorkspaces = await Workspace.find({ _id: { $in: allWorkspaceIds } }).populate('plan').lean();
+        
+        // Get subscription info for each workspace
+        const Subscription = require('../models/subscription.model');
+        const subscriptionMap = new Map();
+        for (const wsId of allWorkspaceIds) {
+            const subscription = await Subscription.findOne({
+                workspaceId: wsId,
+                status: 'ACTIVE'
+            }).populate('planId').lean();
+            subscriptionMap.set(wsId, subscription);
+        }
 
-        // Add role information to each workspace
+        // Add role and subscription information to each workspace
         const workspacesWithRoles = allWorkspaces.map(ws => {
             const membership = memberships.find(m => m.workspaceId === ws._id);
             const isOwner = ws.ownerId === user._id;
+            const subscription = subscriptionMap.get(ws._id);
             return {
                 ...ws,
-                role: isOwner ? 'ADMIN' : (membership?.role || 'MEMBER')
+                role: isOwner ? 'ADMIN' : (membership?.role || 'MEMBER'),
+                subscription: subscription ? {
+                    status: subscription.status,
+                    periodEnd: subscription.periodEnd,
+                    planName: subscription.planId?.name
+                } : null
             };
         });
 
@@ -154,7 +193,16 @@ const getProfile = async (req, res) => {
             // Re-fetch with population
             const WorkspaceFull = await Workspace.findById(currentWorkspace._id).populate('plan').lean();
             if (WorkspaceFull) {
-                currentWorkspace = { ...WorkspaceFull, role: userRole };
+                const subscriptionData = subscriptionMap.get(currentWorkspace._id);
+                currentWorkspace = { 
+                    ...WorkspaceFull, 
+                    role: userRole,
+                    subscription: subscriptionData ? {
+                        status: subscriptionData.status,
+                        periodEnd: subscriptionData.periodEnd,
+                        planName: subscriptionData.planId?.name
+                    } : null
+                };
             }
             
             // Get projects and tasks based on role
