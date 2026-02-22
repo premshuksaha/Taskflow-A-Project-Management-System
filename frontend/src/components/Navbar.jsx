@@ -49,6 +49,14 @@ const Navbar = ({ setIsSidebarOpen }) => {
             <div className="flex items-center justify-between max-w-6xl mx-auto">
                 {/* Left section */}
                 <div className="flex items-center gap-4 min-w-0 flex-1">
+                    {/* App Branding */}
+                    <div className="hidden sm:flex items-center gap-2.5">
+                        <img src="/favicon.ico" alt="Taskflow" className="w-7 h-7 rounded-md" />
+                        <h1 className="text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 dark:from-blue-400 dark:via-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
+                            Taskflow
+                        </h1>
+                    </div>
+
                     {/* Sidebar Trigger */}
                     <button onClick={() => setIsSidebarOpen((prev) => !prev)} className="sm:hidden p-2 rounded-lg transition-colors text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800" >
                         <PanelLeft size={20} />

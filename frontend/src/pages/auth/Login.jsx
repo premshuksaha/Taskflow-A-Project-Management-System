@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { setAuthData } from '../../features/workspaceSlice';
 import { API_PATHS } from '../../utils/apiPaths';
 import axiosInstance from '../../utils/axiosInstance';
+import AuthNavbar from '../../components/AuthNavbar';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -30,27 +31,31 @@ const Login = () => {
       toast.success('Successfully logged in!');
       navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Or{' '}
-            <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-              create a new account
-            </Link>
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+    <>
+      <AuthNavbar />
+      <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Sign in to your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              Or{' '}
+              <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+                create a new account
+              </Link>
+            </p>
+          </div>
+          <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div className="mb-4">
               <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -98,6 +103,7 @@ const Login = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

@@ -30,7 +30,11 @@ axiosInstance.interceptors.response.use(
     (error) => {
         if (error.response) {
             if (error.response.status === 401) {
-                window.location.href = '/login'
+                // Don't redirect on login/signup pages - let them handle the error
+                const currentPath = window.location.pathname;
+                if (currentPath !== '/login' && currentPath !== '/signup') {
+                    window.location.href = '/login'
+                }
             }else if (error.response.status === 500) {
                 console.error('Server error:', error.response.data);
             }

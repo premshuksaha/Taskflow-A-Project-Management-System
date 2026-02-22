@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import Layout from "./pages/Layout";
 import { Toaster } from "react-hot-toast";
 import Login from "./pages/auth/Login";
@@ -11,11 +13,46 @@ import TaskDetails from "./pages/TaskDetails";
 import Subscription from "./pages/Subscription";
 import AcceptInvite from "./pages/AcceptInvite";
 import UserProvider from "./context/UserContext";
+import { loadTheme } from "./features/themeSlice";
 
 const App = () => {
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(loadTheme());
+    }, [dispatch]);
     return (
         <UserProvider>
-            <Toaster />
+            <Toaster 
+                position="top-center"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        padding: '16px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                    },
+                    success: {
+                        style: {
+                            background: '#10b981',
+                            color: 'white',
+                        },
+                    },
+                    error: {
+                        style: {
+                            background: '#ef4444',
+                            color: 'white',
+                        },
+                    },
+                    loading: {
+                        style: {
+                            background: '#3b82f6',
+                            color: 'white',
+                        },
+                    },
+                }}
+            />
                 <div>
                 <Routes>
                     <Route path="login" element={<Login />} />
