@@ -8,7 +8,6 @@ const workspaceSchema = new mongoose.Schema({
     description: { type: String, default: "" },
     settings: { type: mongoose.Schema.Types.Mixed, default: {} },
     ownerId: { type: String, ref: 'User', required: true },
-    image_url: { type: String, default: "" },
     plan: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan' },
 }, { timestamps: true });
 
