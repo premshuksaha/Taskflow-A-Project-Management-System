@@ -14,18 +14,38 @@ const signup = async (req, res) => {
     try {
         const { name, email, password, workspaceName } = req.body;
 
+        // Validate all required fields first
+        if (!name || name.trim() === '') {
+            return res.status(400).json({ message: 'Name is required' });
+        }
+
+        if (!email || email.trim() === '') {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        if (!password) {
+            return res.status(400).json({ message: 'Password is required' });
+        }
+
+        if (!workspaceName || workspaceName.trim() === '') {
+            return res.status(400).json({ message: 'Workspace name is required' });
+        }
+
         const userExists = await User.findOne({ email });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-        //validate email and password
+        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({ message: 'Invalid email format' });
         }
+
+        // Validate password length
         if (password.length < 6) {
             return res.status(400).json({ message: 'Password must be at least 6 characters' });
         }
-        // handle the hashing through pre-save hook
+
+        // Handle the hashing through pre-save hook
         const user = new User({ name, email, password });
         await user.save();
         
@@ -35,11 +55,6 @@ const signup = async (req, res) => {
         // Find default plan (FREE)
         const defaultPlan = await SubscriptionPlan.findOne({ isDefault: true }) || await SubscriptionPlan.findOne({ slug: 'FREE' });
 
-        //validate workspace name
-        if (!workspaceName || workspaceName.trim() === '') {
-            return res.status(400).json({ message: 'Workspace name is required' });
-        }
-        
         const workspace = new Workspace({
             name: workspaceName,
             slug: slug,
