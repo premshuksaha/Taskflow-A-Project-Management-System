@@ -35,6 +35,11 @@ const signup = async (req, res) => {
         // Find default plan (FREE)
         const defaultPlan = await SubscriptionPlan.findOne({ isDefault: true }) || await SubscriptionPlan.findOne({ slug: 'FREE' });
 
+        //validate workspace name
+        if (!workspaceName || workspaceName.trim() === '') {
+            return res.status(400).json({ message: 'Workspace name is required' });
+        }
+        
         const workspace = new Workspace({
             name: workspaceName,
             slug: slug,
