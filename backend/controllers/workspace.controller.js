@@ -159,6 +159,11 @@ exports.acceptInvite = async (req, res) => {
                 return res.status(400).json({ message: 'Password and name required for new account' });
             }
 
+            // Validate password
+            if (password.length < 6) {
+                return res.status(400).json({ message: 'Password must be at least 6 characters' });
+            }
+
             user = new User({
                 name,
                 email: email.toLowerCase(),
