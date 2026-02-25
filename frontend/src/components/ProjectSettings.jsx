@@ -108,7 +108,16 @@ export default function ProjectSettings({ project }) {
                                 {project.members.map((member, index) => (
                                     <div key={index} className="flex items-center justify-between px-3 py-2 rounded dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-300" >
                                         <span> {member?.user?.email || "Unknown"} </span>
-                                        {project.team_lead === member?.user?._id && <span className="px-2 py-0.5 rounded-xs ring ring-zinc-200 dark:ring-zinc-600">Team Lead</span>}
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 py-0.5 rounded text-xs ${
+                                                member?.workspaceRole === 'ADMIN' 
+                                                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' 
+                                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                            }`}>
+                                                {member?.workspaceRole || 'MEMBER'}
+                                            </span>
+                                            {project.team_lead === member?.user?._id && <span className="px-2 py-0.5 rounded-xs ring ring-zinc-200 dark:ring-zinc-600 text-xs">Team Lead</span>}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -212,7 +221,16 @@ export default function ProjectSettings({ project }) {
                             {project.members.map((member, index) => (
                                 <div key={index} className="flex items-center justify-between px-3 py-2 rounded dark:bg-zinc-800 text-sm text-zinc-900 dark:text-zinc-300" >
                                     <span> {member?.user?.email || "Unknown"} </span>
-                                    {project.team_lead === member?.user?._id && <span className="px-2 py-0.5 rounded-xs ring ring-zinc-200 dark:ring-zinc-600">Team Lead</span>}
+                                    <div className="flex items-center gap-2">
+                                        <span className={`px-2 py-0.5 rounded text-xs ${
+                                            member?.workspaceRole === 'ADMIN' 
+                                                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' 
+                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                        }`}>
+                                            {member?.workspaceRole || 'MEMBER'}
+                                        </span>
+                                        {project.team_lead === member?.user?._id && <span className="px-2 py-0.5 rounded-xs ring ring-zinc-200 dark:ring-zinc-600 text-xs">Team Lead</span>}
+                                    </div>
                                 </div>
                             ))}
                         </div>

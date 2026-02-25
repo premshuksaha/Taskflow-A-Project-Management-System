@@ -22,7 +22,7 @@ const taskSchema = new mongoose.Schema({
         enum: ['LOW', 'MEDIUM', 'HIGH'], 
         default: 'MEDIUM' 
     },
-    assigneeId: { type: String, ref: 'User' },
+    assigneeId: { type: String, ref: 'User',default: "" },
     due_date: { type: Date },
 }, { timestamps: true });
 

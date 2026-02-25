@@ -269,11 +269,24 @@ const getProfile = async (req, res) => {
                     .populate('userId', 'name email image')
                     .lean();
                 
+                // Get workspace roles for each project member
+                const memberUserIds = projectMembers.map(m => m.userId?._id).filter(Boolean);
+                const workspaceMembers = await WorkspaceMember.find({
+                    workspaceId: currentWorkspace._id,
+                    userId: { $in: memberUserIds }
+                }).lean();
+                
+                const roleMap = new Map();
+                workspaceMembers.forEach(wm => {
+                    roleMap.set(wm.userId, wm.role);
+                });
+                
                 project.members = projectMembers
                     .filter(m => m.userId)
                     .map(m => ({
                         _id: m._id,
-                        user: m.userId
+                        user: m.userId,
+                        workspaceRole: roleMap.get(m.userId._id) || 'MEMBER'
                     }));
             }
             currentWorkspace.projects = projects;
