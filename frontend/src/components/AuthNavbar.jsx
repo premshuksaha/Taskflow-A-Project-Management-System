@@ -13,7 +13,7 @@ const AuthNavbar = () => {
                     {/* Left - Branding */}
                     <div className="flex items-center gap-3">
                         <img src="/favicon.ico" alt="Taskflow" className="w-10 h-10 rounded-lg shadow-lg" />
-                        <div className="hidden sm:block">
+                        <div className="flex flex-col leading-tight">
                             <h1 className="text-2xl font-black bg-linear-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight">
                                 Taskflow
                             </h1>

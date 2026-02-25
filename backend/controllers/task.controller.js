@@ -95,7 +95,7 @@ const updateTask = async (req, res) => {
             }
         }
 
-        const updatedTask = await Task.findByIdAndUpdate(taskId, req.body, { new: true });
+        const updatedTask = await Task.findByIdAndUpdate(taskId, req.body, { returnDocument: 'after' });
         res.json(updatedTask);
     } catch (error) {
         console.error('Error updating task:', error);

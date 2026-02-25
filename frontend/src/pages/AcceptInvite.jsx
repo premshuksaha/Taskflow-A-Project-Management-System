@@ -6,6 +6,7 @@ import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
 import { setAuthData } from "../features/workspaceSlice";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 
 const AcceptInvite = () => {
     const { token } = useParams();
@@ -22,6 +23,8 @@ const AcceptInvite = () => {
         confirmPassword: ""
     });
     const [acceptedSuccess, setAcceptedSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     // Fetch invite details on mount
     useEffect(() => {
@@ -221,26 +224,46 @@ const AcceptInvite = () => {
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
-                                    <input
-                                        type="password"
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        placeholder="At least 6 characters"
-                                        required={!hasAccount}
-                                        className="w-full px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900/50 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            placeholder="At least 6 characters"
+                                            required={!hasAccount}
+                                            className="w-full pr-10 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900/50 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((prev) => !prev)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showPassword ? <FaRegEyeSlash className="h-4 w-4" /> : <FaRegEye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Confirm Password</label>
-                                    <input
-                                        type="password"
-                                        value={formData.confirmPassword}
-                                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                        placeholder="Confirm your password"
-                                        required={!hasAccount}
-                                        className="w-full px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900/50 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            value={formData.confirmPassword}
+                                            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                            placeholder="Confirm your password"
+                                            required={!hasAccount}
+                                            className="w-full pr-10 px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900/50 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                        >
+                                            {showConfirmPassword ? <FaRegEyeSlash className="h-4 w-4" /> : <FaRegEye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

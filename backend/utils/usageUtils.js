@@ -16,7 +16,7 @@ const syncUsageCounts = async (workspaceId) => {
             counts: { projects, tasks, members },
             lastSyncedAt: new Date()
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
     );
 
     return usage;

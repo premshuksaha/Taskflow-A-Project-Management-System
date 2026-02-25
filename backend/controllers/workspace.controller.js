@@ -301,7 +301,7 @@ exports.updateWorkspace = async (req, res) => {
         const { id } = req.params;
         const { name } = req.body;
         
-        const workspace = await Workspace.findByIdAndUpdate(id, { name }, { new: true });
+        const workspace = await Workspace.findByIdAndUpdate(id, { name }, { returnDocument: 'after' });
         if (!workspace) return res.status(404).json({ message: 'Workspace not found' });
         
         res.json(workspace);

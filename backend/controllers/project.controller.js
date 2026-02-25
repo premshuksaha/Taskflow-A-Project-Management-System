@@ -20,6 +20,14 @@ exports.createProject = async (req, res) => {
     const User = require('../models/user.model');
     const ProjectMember = require('../models/projectMember.model');
 
+    //validate name and start_date
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'Project name is required' });
+    }
+    if (!start_date) {
+        return res.status(400).json({ message: 'Start date is required' });
+    }
+
     try {
         const newProject = new Project({
             name,
@@ -65,7 +73,7 @@ exports.updateProject = async (req, res) => {
         const updatedProject = await Project.findByIdAndUpdate(
             projectId,
             { name, description, priority, status, start_date, end_date, team_lead, progress },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!updatedProject) {
