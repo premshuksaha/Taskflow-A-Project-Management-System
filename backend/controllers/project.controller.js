@@ -1,7 +1,7 @@
 const Project = require('../models/project.model');
 const Workspace = require('../models/workspace.model');
 const WorkspaceMember = require('../models/workspaceMember.model');
-const Task = require('../models/task.model');
+const ProjectMember = require('../models/projectMember.model');
 const { decrementUsage } = require('../utils/usageUtils');
 
 //Get all projects in a workspace for the logged in user
@@ -34,14 +34,13 @@ exports.getProjects = async (req, res) => {
             // Admin sees all workspace projects
             projects = await Project.find({ workspaceId });
         } else {
-            // Non-admin sees only projects where they have tasks assigned
-            const userTasks = await Task.find({ 
-                workspaceId,
-                assigneeId: userId 
+            // Non-admin sees projects they are added to
+            const userProjectMemberships = await ProjectMember.find({
+                userId
             }).select('projectId').lean();
-            const projectIds = [...new Set(userTasks.map(t => t.projectId))];
+            const projectIds = [...new Set(userProjectMemberships.map(m => m.projectId))];
 
-            projects = await Project.find({ 
+            projects = await Project.find({
                 workspaceId,
                 _id: { $in: projectIds }
             });

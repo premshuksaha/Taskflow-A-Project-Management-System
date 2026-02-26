@@ -2,6 +2,7 @@ const Project = require('../models/project.model');
 const Task = require('../models/task.model');
 const Workspace = require('../models/workspace.model');
 const WorkspaceMember = require('../models/workspaceMember.model');
+const ProjectMember = require('../models/projectMember.model');
 
 exports.getDashboardStats = async (req, res) => {
     const { workspaceId } = req.params;
@@ -33,33 +34,62 @@ exports.getDashboardStats = async (req, res) => {
             projectCount = await Project.countDocuments({ workspaceId });
             completedProjectsCount = await Project.countDocuments({ workspaceId, status: 'COMPLETED' });
         } else {
-            // Non-admin sees only projects where they have assigned tasks
-            const userTasks = await Task.find({ 
-                workspaceId,
-                assigneeId: userId 
+            // Non-admin sees projects they are added to
+            const userProjectMemberships = await ProjectMember.find({
+                userId
             }).select('projectId').lean();
-            const projectIds = [...new Set(userTasks.map(t => t.projectId))];
+            const projectIds = [...new Set(userProjectMemberships.map(m => m.projectId))];
 
-            projectCount = await Project.countDocuments({ 
+            projectCount = await Project.countDocuments({
                 workspaceId,
                 _id: { $in: projectIds }
             });
-            completedProjectsCount = await Project.countDocuments({ 
+            completedProjectsCount = await Project.countDocuments({
                 workspaceId,
                 _id: { $in: projectIds },
-                status: 'COMPLETED' 
+                status: 'COMPLETED'
             });
         }
 
-        const activeTasksCount = await Task.countDocuments({ workspaceId, assigneeId: userId, status: { $ne: 'DONE' } });
-        const completedTasksCount = await Task.countDocuments({ workspaceId, assigneeId: userId, status: 'DONE' });
+        const activeTasksCount = isAdmin
+            ? await Task.countDocuments({ workspaceId, status: { $ne: 'DONE' } })
+            : await Task.countDocuments({ workspaceId, assigneeId: userId, status: { $ne: 'DONE' } });
+
+        const completedTasksCount = isAdmin
+            ? await Task.countDocuments({ workspaceId, status: 'DONE' })
+            : await Task.countDocuments({ workspaceId, assigneeId: userId, status: 'DONE' });
+
+        const myTasksCount = await Task.countDocuments({
+            workspaceId,
+            assigneeId: userId,
+            status: { $ne: 'DONE' }
+        });
+
+        // Calculate overdue tasks (due_date < today and status !== 'DONE')
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const overdueTasksCount = isAdmin
+            ? await Task.countDocuments({ 
+                workspaceId, 
+                status: { $ne: 'DONE' },
+                due_date: { $lt: today }
+              })
+            : await Task.countDocuments({ 
+                workspaceId, 
+                assigneeId: userId,
+                status: { $ne: 'DONE' },
+                due_date: { $lt: today }
+              });
 
         // Basic stats for the dashboard
         res.json({
             projectCount,
             completedProjectsCount,
             activeTasksCount,
-            completedTasksCount
+            completedTasksCount,
+            myTasksCount,
+            overdueTasksCount
         });
     } catch (error) {
         console.error('Error fetching dashboard stats:', error);

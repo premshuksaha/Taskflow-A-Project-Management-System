@@ -28,17 +28,12 @@ export default function StatsGrid() {
                 const response = await axiosInstance.get(API_PATHS.DASHBOARD.STATS(currentWorkspace._id));
                 const data = response.data;
                 
-                // Calculate My Tasks from workspace data for accuracy
-                const myTasksCount = currentWorkspace.projects?.reduce((acc, proj) => {
-                    return acc + (proj.tasks?.filter(t => t.assigneeId === currentUser?._id && t.status !== 'DONE').length || 0);
-                }, 0) || 0;
-
                 setStats({
                     totalProjects: data.projectCount || 0,
                     activeTasks: data.activeTasksCount || 0,
                     completedProjects: data.completedProjectsCount || 0,
-                    myTasks: myTasksCount,
-                    overdueIssues: 0, // Placeholder
+                    myTasks: data.myTasksCount ?? 0,
+                    overdueIssues: data.overdueTasksCount || 0,
                 });
             } catch (error) {
                 console.error("Dashboard stats error:", error);
@@ -69,9 +64,9 @@ export default function StatsGrid() {
                 },
                 {
                     icon: Users,
-                    title: "My Tasks",
+                    title: "Active Tasks",
                     value: stats.myTasks,
-                    subtitle: "assigned to me",
+                    subtitle: "pending tasks",
                     bgColor: "bg-purple-500/10",
                     textColor: "text-purple-500",
                 },

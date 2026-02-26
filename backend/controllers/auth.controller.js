@@ -241,14 +241,14 @@ const getProfile = async (req, res) => {
                 // Admins see all projects
                 projects = await Project.find({ workspaceId: currentWorkspace._id }).lean();
             } else {
-                // Members only see projects where they have assigned tasks
-                const userTasks = await Task.find({ 
-                    assigneeId: user._id 
+                // Members see projects they are added to
+                const userProjectMemberships = await ProjectMember.find({
+                    userId: user._id
                 }).select('projectId').lean();
-                const projectIds = [...new Set(userTasks.map(t => t.projectId))];
-                projects = await Project.find({ 
+                const projectIds = [...new Set(userProjectMemberships.map(m => m.projectId))];
+                projects = await Project.find({
                     _id: { $in: projectIds },
-                    workspaceId: currentWorkspace._id 
+                    workspaceId: currentWorkspace._id
                 }).lean();
             }
             
