@@ -1,12 +1,52 @@
 const Project = require('../models/project.model');
+const Workspace = require('../models/workspace.model');
+const WorkspaceMember = require('../models/workspaceMember.model');
+const Task = require('../models/task.model');
 const { decrementUsage } = require('../utils/usageUtils');
 
 //Get all projects in a workspace for the logged in user
 exports.getProjects = async (req, res) => {
     const { workspaceId } = req.params;
+    const userId = req.user._id;
 
     try {
-        const projects = await Project.find({ workspaceId });
+        // Check if user is workspace admin
+        const workspace = await Workspace.findOne({
+            _id: workspaceId,
+            ownerId: userId
+        });
+
+        const isOwner = !!workspace;
+        
+        let isAdmin = isOwner;
+        if (!isOwner) {
+            const membership = await WorkspaceMember.findOne({
+                workspaceId,
+                userId,
+                role: 'ADMIN'
+            });
+            isAdmin = !!membership;
+        }
+
+        let projects;
+
+        if (isAdmin) {
+            // Admin sees all workspace projects
+            projects = await Project.find({ workspaceId });
+        } else {
+            // Non-admin sees only projects where they have tasks assigned
+            const userTasks = await Task.find({ 
+                workspaceId,
+                assigneeId: userId 
+            }).select('projectId').lean();
+            const projectIds = [...new Set(userTasks.map(t => t.projectId))];
+
+            projects = await Project.find({ 
+                workspaceId,
+                _id: { $in: projectIds }
+            });
+        }
+
         res.json(projects);
     } catch (error) {
         console.error('Error fetching projects:', error);

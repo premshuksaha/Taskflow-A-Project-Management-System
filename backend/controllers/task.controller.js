@@ -1,5 +1,7 @@
 const Task = require('../models/task.model');
 const ProjectMember = require('../models/projectMember.model');
+const Workspace = require('../models/workspace.model');
+const WorkspaceMember = require('../models/workspaceMember.model');
 const { decrementUsage } = require('../utils/usageUtils');
 
 // Create a task
@@ -53,8 +55,41 @@ const createTask = async (req, res) => {
 // Get tasks for a project
 const getTasksByProject = async (req, res) => {
     const { projectId } = req.params;
+    const userId = req.user._id;
+
     try {
-        const tasks = await Task.find({ projectId }).populate('assigneeId', 'name email');
+        const task = await Task.findOne({ projectId });
+        if (!task) return res.status(200).json([]);
+
+        const workspaceId = task.workspaceId;
+
+        // Check if user is workspace admin
+        const workspace = await Workspace.findOne({
+            _id: workspaceId,
+            ownerId: userId
+        });
+
+        const isOwner = !!workspace;
+        
+        let isAdmin = isOwner;
+        if (!isOwner) {
+            const membership = await WorkspaceMember.findOne({
+                workspaceId,
+                userId,
+                role: 'ADMIN'
+            });
+            isAdmin = !!membership;
+        }
+
+        let tasks;
+        if (isAdmin) {
+            // Admins see all tasks in the project
+            tasks = await Task.find({ projectId }).populate('assigneeId', 'name email');
+        } else {
+            // Members only see their assigned tasks
+            tasks = await Task.find({ projectId, assigneeId: userId }).populate('assigneeId', 'name email');
+        }
+
         res.json(tasks);
     } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -65,14 +100,43 @@ const getTasksByProject = async (req, res) => {
 // Get tasks for a workspace
 const getTasksByWorkspace = async (req, res) => {
     const { workspaceId } = req.params;
+    const userId = req.user._id;
+
     try {
-        const tasks = await Task.find({ workspaceId }).populate('assigneeId', 'name email');
+        // Check if user is workspace admin
+        const workspace = await Workspace.findOne({
+            _id: workspaceId,
+            ownerId: userId
+        });
+
+        const isOwner = !!workspace;
+        
+        let isAdmin = isOwner;
+        if (!isOwner) {
+            const membership = await WorkspaceMember.findOne({
+                workspaceId,
+                userId,
+                role: 'ADMIN'
+            });
+            isAdmin = !!membership;
+        }
+
+        let tasks;
+        if (isAdmin) {
+            // Admins see all workspace tasks
+            tasks = await Task.find({ workspaceId }).populate('assigneeId', 'name email');
+        } else {
+            // Members only see their assigned tasks
+            tasks = await Task.find({ workspaceId, assigneeId: userId }).populate('assigneeId', 'name email');
+        }
+
         res.json(tasks);
     } catch (error) {
         console.error('Error fetching workspace tasks:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+  
 
 // Update a task
 const updateTask = async (req, res) => {
