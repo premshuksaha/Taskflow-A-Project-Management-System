@@ -26,7 +26,7 @@ const ProjectCalendar = ({ tasks }) => {
     const upcomingTasks = tasks
         .filter((task) => task.due_date && !isBefore(task.due_date, today) && task.status !== "DONE")
         .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
-        .slice(0, 5);
+        .slice(0, 10);
 
     const overdueTasks = tasks.filter((task) => task.due_date && isBefore(task.due_date, today) && task.status !== "DONE");
 
