@@ -29,8 +29,8 @@ export const API_PATHS = {
         CREATE: '/tasks/add',
         UPDATE: (taskId) => `/tasks/update/${taskId}`,
         DELETE: (taskId) => `/tasks/delete/${taskId}`,
-        GET_BY_PROJECT: (projectId) => `/tasks/get/tasks/${projectId}`,
-        GET_BY_WORKSPACE: (workspaceId) => `/tasks/get/tasks/${workspaceId}`,
+        GET_BY_PROJECT: (projectId) => `/tasks/get/project/${projectId}`,
+        GET_BY_WORKSPACE: (workspaceId) => `/tasks/get/workspace/${workspaceId}`,
     },
     SUBSCRIPTION: {
         PLANS: '/subscription/plans',

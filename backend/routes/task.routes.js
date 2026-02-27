@@ -9,10 +9,10 @@ const { createTask, getTasksByProject, getTasksByWorkspace, updateTask, deleteTa
 router.post('/add', protect, requireActiveSubscription, checkWorkspaceAdmin, enforceUsageLimit('tasks'), createTask);
 
 // Get tasks for a project
-router.get('/get/tasks/:projectId', protect, checkProjectMember, getTasksByProject);
+router.get('/get/project/:projectId', protect, checkProjectMember, getTasksByProject);
 
 // Get tasks for a workspace
-router.get('/get/tasks/:workspaceId', protect, checkWorkspaceMember, getTasksByWorkspace);
+router.get('/get/workspace/:workspaceId', protect, checkWorkspaceMember, getTasksByWorkspace);
 
 // Update a task (Admin or assigned member)
 router.put('/update/:taskId', protect, checkTaskUpdatePermission, updateTask);
