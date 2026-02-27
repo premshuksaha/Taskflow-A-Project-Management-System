@@ -34,7 +34,7 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      const errorMessage = error.response?.data?.message || error.message || 'Log in failed. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -48,12 +48,12 @@ const Login = () => {
         <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
           <div>
             <h2 className="mt-6 text-center text-3xl font-medium tracking-tight text-gray-900 dark:text-white">
-              Sign in to your account
+              Log in to your workspace 
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
               Or{' '}
               <Link to="/signup" className="font-sans text-blue-600 hover:text-blue-500">
-                create a new account
+                create a new workspace
               </Link>
             </p>
           </div>
@@ -107,7 +107,7 @@ const Login = () => {
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? 'Logging in...' : 'Log in'}
             </button>
           </div>
         </form>

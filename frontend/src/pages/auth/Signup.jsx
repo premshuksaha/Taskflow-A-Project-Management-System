@@ -7,6 +7,7 @@ import { setAuthData } from '../../features/workspaceSlice';
 import { API_PATHS } from '../../utils/apiPaths';
 import axiosInstance from '../../utils/axiosInstance';
 import AuthNavbar from '../../components/AuthNavbar';
+import { FaInfoCircle } from 'react-icons/fa';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -41,11 +42,11 @@ const Signup = () => {
       const profileResponse = await axiosInstance.get(API_PATHS.AUTH.PROFILE);
       dispatch(setAuthData(profileResponse.data));
 
-      toast.success('Account created successfully!');
+      toast.success('Workspace account created successfully!');
       navigate('/');
     } catch (error) {
       console.error('Signup error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Signup failed. Please try again.';
+      const errorMessage = error.response?.data?.message || error.message || 'Sign up failed. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -56,18 +57,20 @@ const Signup = () => {
     <>
       <AuthNavbar />
       <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
+      <div className="w-full max-w-md">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-medium tracking-tight text-gray-900 dark:text-white">
-            Create your account
+            Create a new workspace
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{' '}
             <Link to="/login" className="font-sans text-blue-600 hover:text-blue-500">
-              sign in to existing account
+              log in to existing workspace
             </Link>
           </p>
         </div>
+
         <form className="mt-8 space-y-4" onSubmit={handleSignup}>
           <div className="rounded-md space-y-4">
             <div>
@@ -148,12 +151,33 @@ const Signup = () => {
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? 'Signing up...' : 'Sign up'}
             </button>
           </div>
         </form>
       </div>
+      </div>
     </div>
+
+      {/* Informational Message for Joining Organizations */}
+      <div className="fixed bottom-0 left-0 right-0 w-full bg-blue-50 dark:bg-blue-900/30 border-t-2 border-blue-200 dark:border-blue-800 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-3">
+            <FaInfoCircle className="text-blue-600 dark:text-blue-400 text-lg shrink-0" />
+            <div className="text-center">
+              <span className="text-sm font-semibold text-blue-800 dark:text-blue-300 mr-2">
+                Joining an Existing Workspace?
+              </span>
+              <span className="text-sm text-blue-700 dark:text-blue-400">
+                To join as a member/admin of an workspace, please use the invite link sent by your workspace admin and then{' '}
+                <Link to="/login" className="font-semibold underline text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100">
+                  log in
+                </Link>.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 };
