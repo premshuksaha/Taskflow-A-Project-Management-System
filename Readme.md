@@ -6,108 +6,40 @@ Taskflow is a comprehensive project management and team collaboration platform b
 
 ## 📋 Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [System Architecture](#system-architecture)
-3. [Technology Stack](#technology-stack)
-4. [Features](#features)
-5. [Project Structure](#project-structure)
-6. [Installation & Setup](#installation--setup)
-7. [Database Schema](#database-schema)
-8. [API Documentation](#api-documentation)
-9. [Authentication & Authorization](#authentication--authorization)
-10. [Deployment](#deployment)
+1. [Project Overview](#-project-overview)
+2. [Technology Stack](#-technology-stack)
+3. [Features](#-features)
+4. [Project Structure](#-project-structure)
+5. [Installation & Setup](#-installation--setup)
+6. [Authentication & Authorization](#-authentication--authorization)
+7. [Deployment](#-deployment)
 
 ---
+
+## 📚 Documentation
+
+- [API Documentation](API_DOCUMENTATION.md)
+- [Architecture Diagrams](ARCHITECTURE_DIAGRAMS.md)
+- [Database Design Rationale](DATABASE_DESIGN_RATIONALE.md)
 
 ## 🎯 Project Overview
 
-Taskflow is a full-stack web application that allows users to:
-- Create and manage multiple workspaces
-- Organize projects with team members
-- Create and assign tasks with priorities and deadlines
-- Track project progress and analytics
-- Collaborate through comments and activity feeds
-- Subscribe to plans for extended features
+Taskflow is a full-stack project management platform that helps teams organize their work through:
 
-### Core Capabilities:
-- **Multi-workspace support** with role-based access control
-- **Subscription tiers** (FREE and PRO) with feature limits
-- **Real-time collaboration** with comments and activity tracking
-- **Dark/Light theme** support
-- **Invite system** for adding team members
-- **Analytics & reporting** for projects and tasks
+- **Workspaces**: Multi-tenant isolation with role-based access (ADMIN, MEMBER)
+- **Projects**: Organize work with status (ACTIVE, PLANNING, COMPLETED, ON_HOLD, CANCELLED), priority, and team leads
+- **Tasks**: Create, assign, and track work items with priorities (LOW, MEDIUM, HIGH), types (TASK, BUG, FEATURE), and due dates
+- **Collaboration**: Comments on tasks, team member management, activity tracking
+- **Subscriptions**: Flexible plan system (FREE, PRO) with usage limits and feature gates
+- **Analytics**: Dashboard with stats (project counts, task counts, overdue items)
+- **Invitations**: Email-based workspace member invites with token expiration
 
----
-
-## 🏗️ System Architecture
-
-### Architecture Diagram
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    FRONTEND - React/Vite                     │
-│  ┌──────────────┐  ┌─────────────┐  ┌──────────────────┐   │
-│  │ UI Components│  │ Redux Store │  │  Context API     │   │
-│  │ (Navbar,     │  │(Workspace,  │  │  (UserContext)   │   │
-│  │ Sidebar,     │  │ Theme)      │  │                  │   │
-│  │ Cards)       │  │             │  │                  │   │
-│  └──────────────┘  └─────────────┘  └──────────────────┘   │
-│         │                │                    │              │
-│         └────────────────┴────────────────────┘              │
-│                         │                                    │
-│              ┌──────────▼──────────┐                         │
-│              │   Axios Instance    │                         │
-│              │  (API Communication)│                         │
-│              └────────────┬────────┘                         │
-└───────────────────────────┼───────────────────────────────────┘
-                            │
-                   REST API (/api/*)
-                            │
-┌───────────────────────────▼───────────────────────────────────┐
-│              BACKEND - Node.js/Express                         │
-│  ┌──────────┐  ┌─────────────┐  ┌──────────────────┐         │
-│  │  Routes  │  │ Controllers │  │  Middleware      │         │
-│  │  (/api)  │  │ (Business   │  │ (Auth, Perms)    │         │
-│  │          │  │  Logic)     │  │                  │         │
-│  └────┬─────┘  └──────┬──────┘  └────────┬─────────┘         │
-│       │               │                  │                   │
-│       └───────────────┼──────────────────┘                   │
-│                       │                                      │
-│            ┌──────────▼──────────┐                           │
-│            │  MongoDB Models     │                           │
-│            │ (User, Workspace,   │                           │
-│            │  Project, Task...)  │                           │
-│            └────────────┬────────┘                           │
-└───────────────────────────┼───────────────────────────────────┘
-                            │
-┌───────────────────────────▼───────────────────────────────────┐
-│            DATABASE - MongoDB                                 │
-│  ┌──────┐  ┌───────────┐  ┌────────┐  ┌──────┐  ┌────────┐  │
-│  │Users │  │Workspaces │  │Projects│  │Tasks │  │Comments│  │
-│  │      │  │           │  │        │  │      │  │        │  │
-│  └──────┘  └───────────┘  └────────┘  └──────┘  └────────┘  │
-└───────────────────────────────────────────────────────────────┘
-```
-
-### Architecture Layers
-
-#### **1. Frontend Layer (React + Vite)**
-- **UI Components**: Reusable React components for buttons, cards, dialogs, forms
-- **Pages**: Route-based pages for different features (Auth, Dashboard, Projects, Tasks)
-- **State Management**: Redux for workspace/theme state, Context API for user data
-- **API Communication**: Axios instance with interceptors for JWT tokens
-- **Custom Hooks**: Reusable logic like `useUserAuth` for authentication
-
-#### **2. Backend Layer (Node.js + Express)**
-- **Routes**: API endpoints organized by feature (auth, projects, tasks, workspaces)
-- **Controllers**: Business logic handlers for each route
-- **Middleware**: Authentication and authorization checks
-- **Models**: MongoDB schemas with validation rules
-
-#### **3. Database Layer (MongoDB)**
-- **Data Persistence**: MongoDB collections for all entities
-- **Relationships**: Document references between collections
-- **Queries**: Optimized queries for efficient data retrieval
+### Core Architecture
+- **Frontend**: React 19 + Redux + Tailwind CSS, running on Vite
+- **Backend**: Node.js/Express REST API with MongoDB
+- **Database**: MongoDB with 11 collections for users, workspaces, projects, tasks, subscriptions, and more
+- **Auth**: JWT-based authentication with bcryptjs password hashing
+- **Middleware**: Multi-layer permission checks (workspace, project, task levels)
 
 ---
 
@@ -116,82 +48,138 @@ Taskflow is a full-stack web application that allows users to:
 ### Frontend
 | Technology | Purpose | Version |
 |-----------|---------|---------|
-| **React** | UI framework | 18+ |
-| **Vite** | Build tool & dev server | Latest |
-| **Redux Toolkit** | State management | Latest |
-| **Axios** | HTTP client | Latest |
-| **Tailwind CSS** | Styling framework | Latest |
-| **Lucide React** | Icon library | Latest |
-| **React Router** | Client-side routing | v6+ |
+| **React** | UI framework | 19.1.1 |
+| **Vite** | Build tool & dev server | 7.1.2 |
+| **Redux Toolkit** | State management | 2.8.2 |
+| **Axios** | HTTP client | 1.13.5 |
+| **Tailwind CSS** | Styling framework | 4.1.12 (@tailwindcss/vite) |
+| **Lucide React** | Icon library | 0.540.0 |
+| **React Router** | Client-side routing | 7.8.1 |
+| **Recharts** | Data visualization | 3.1.2 |
+| **React Hot Toast** | Notifications | 2.6.0 |
+| **Date-fns** | Date utilities | 4.1.0 |
 
 ### Backend
 | Technology | Purpose | Version |
 |-----------|---------|---------|
 | **Node.js** | Runtime environment | 14+ |
-| **Express.js** | Web framework | 4+ |
-| **MongoDB** | Database | Latest |
-| **JWT** | Authentication | Standard |
-| **bcrypt** | Password hashing | Latest |
-| **CORS** | Cross-origin requests | Latest |
+| **Express.js** | Web framework | 5.2.1 |
+| **MongoDB** | Database | Latest (Mongoose 9.2.1) |
+| **JWT** | Authentication | 9.0.3 |
+| **bcryptjs** | Password hashing | 3.0.3 |
+| **CORS** | Cross-origin requests | 2.8.6 |
+| **UUID** | Unique IDs | 13.0.0 |
+| **Resend** | Email service | 4.0.0 |
+| **Nodemon** | Dev server reload | 3.1.11 |
 
 ---
 
 ## ✨ Features
 
 ### 1. **Authentication & User Management**
-- User registration and login with JWT tokens
-- Password hashing with bcrypt
-- Session management
-- Logout functionality
+- User registration with workspace creation during signup
+- Login with JWT token (7-day expiry)
+- Password hashing with bcryptjs
+- User profiles with name and email
+- Token-based authentication
 
 ### 2. **Workspace Management**
-- Create multiple workspaces
-- Add and manage team members
-- Role-based access control (ADMIN, MEMBER)
-- Workspace invitations with email verification
-- Switch between workspaces seamlessly
+- Create multiple workspaces with unique slugs
+- Workspace ownership and automatic owner setup as ADMIN
+- Role-based access control (ADMIN, MEMBER roles)
+- Workspace member invitations via email tokens
+- Accept/reject workspace invitations with token validation
+- Team member management with role assignments
+- Workspace usage tracking (projects, tasks, members count)
 
 ### 3. **Project Management**
-- Create projects with descriptions
-- Set project status (PLANNING, IN_PROGRESS, COMPLETED)
-- Assign team members to projects
-- Track project progress with performance metrics
-- Project settings and configurations
+- Create projects with description, priority, status, dates
+- Project priorities: LOW, MEDIUM, HIGH
+- Project statuses: ACTIVE, PLANNING, COMPLETED, ON_HOLD, CANCELLED
+- Project progress tracking (0-100%)
+- Assign project team lead
+- Add project members with individual member records
+- Project CRUD operations with usage limit enforcement
+- View projects (filtered by admin or membership status)
 
 ### 4. **Task Management**
-- Create tasks within projects
-- Assign tasks to team members
-- Set priorities (HIGH, MEDIUM, LOW) and due dates
-- Track task status (TODO, IN_PROGRESS, COMPLETED)
-- Task commenting and discussions
-- My Tasks view with personal task dashboard
+- Create tasks with title, description, priority, type
+- Task types: TASK, BUG, FEATURE, IMPROVEMENT, OTHER
+- Task statuses: TODO, IN_PROGRESS, DONE
+- Task priorities: LOW, MEDIUM, HIGH
+- Assign tasks to project members only
+- Set and track due dates
+- Query tasks by project or workspace with role-based filtering
+- Update task details and assignments
+- Delete tasks with usage decrement
 
-### 5. **Analytics & Dashboard**
-- Dashboard with key metrics (total projects, completed projects, my tasks)
-- Project overview with status breakdown
-- Recent activity feed
-- Analytics with progress visualization
-- Task summary statistics
+### 5. **Dashboard & Analytics**
+- Workspace dashboard with key statistics:
+  - Total projects count
+  - Completed projects count
+  - Active tasks count (not DONE)
+  - Completed tasks count (DONE status)
+  - User's personal tasks count
+  - Overdue tasks count (due_date < today, not DONE)
+- Admins see all workspace data; members see only their tasks
+- Real-time dashboard stats updates
 
-### 6. **Subscription Management**
-- FREE plan with basic limits (3 projects, 10 tasks)
-- PRO plan with extended features (unlimited projects, 50 tasks)
-- Subscription status display
-- Upgrade option for admins
+### 6. **Comments & Collaboration**
+- Add comments to tasks with content and user info
+- View all task comments sorted by creation time
+- Edit comments (creator only)
+- Delete comments (creator only)
+- Comments linked to user names and email avatars
+- Member-only access to task comments
 
-### 7. **Collaboration Features**
-- Comments on tasks
-- Activity tracking and recent activity feed
-- Team member invitations
-- Project member management
-- Workspace member roles
+### 7. **Subscription Management**
+- FREE plan with default limits
+- PRO plan (upgradeable) with feature set differences
+- Subscription plans with feature lists (e.g., ANALYTICS, CALENDAR)
+- Usage limits enforceable per plan:
+  - maxProjects (0 = unlimited)
+  - maxTasks (0 = unlimited)
+  - maxMembers (0 = unlimited)
+- Auto-downgrade to FREE on subscription expiration
+- Active subscription check before allowed operations
+- Subscription periods with start/end dates
+- Support for feature-based access control
 
-### 8. **UI/UX Features**
-- Dark/Light theme toggle
-- Responsive design (mobile, tablet, desktop)
-- Search functionality (projects & tasks)
-- Sidebar navigation with collapsible menus
-- Real-time updates
+### 8. **Team & Collaboration Features**
+- Invite team members with email-based tokens
+- Email invitations with magic links
+- Token-based invite acceptance for existing users
+- Duplicate duplicate invite prevention
+- Token expiration (7 days default)
+- Member list with email display
+- Workspace member roles: ADMIN, MEMBER
+
+### 9. **UI/UX Features**
+- Dark/Light theme toggle (Redux-managed)
+- Responsive design with Tailwind CSS 4
+- Real-time toast notifications (react-hot-toast)
+- Dialog-based project and task creation
+- Sidebar navigation with workspace switching
+- Icons via Lucide React and React Icons
+- Data visualization with Recharts
+- Search and filtering capabilities
+
+---
+
+### Database Entities
+
+**Models**
+- **User**: name, email, password (hashed)
+- **Workspace**: name, slug, description, settings, ownerId, plan reference
+- **Project**: name, description, priority, status, dates, team_lead, workspaceId, progress
+- **Task**: title, description, status, type, priority, assigneeId, due_date, projectId, workspaceId
+- **Comment**: content, userId, taskId, timestamps
+- **WorkspaceMember**: userId, workspaceId, role (ADMIN|MEMBER)
+- **ProjectMember**: userId, projectId
+- **Subscription**: workspaceId, planId, status (ACTIVE|EXPIRED), periodStart, periodEnd
+- **SubscriptionPlan**: name, slug, features[], maxProjects, maxTasks, maxMembers, price
+- **WorkspaceInvite**: workspaceId, email, token, role, status (PENDING|ACCEPTED|EXPIRED), expiresAt
+- **WorkspaceUsage**: workspaceId, counts (projects, tasks, members), lastSyncedAt
 
 ---
 
@@ -245,70 +233,74 @@ Taskflow-A-Project-Management-System/
 │   │   ├── app/                      # Redux store configuration
 │   │   │   └── store.js              # Redux store setup
 │   │   │
-│   │   ├── assets/                   # Static assets
-│   │   │   └── assets.js
-│   │   │
-│   │   ├── App.jsx                   # Root component
-│   │   ├── main.jsx                  # Entry point
-│   │   └── index.css                 # Global styles
 │   │
-│   ├── public/                       # Static files
+│   │   ├── App.jsx                   # Root component with routes
+│   │   ├── main.jsx                  # React entry point
+│   │   └── index.css                 # Global Tailwind styles
+│   │
+│   ├── public/                       # Static assets
 │   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   ├── eslint.config.js
-│   └── .env                          # Environment variables
+│   ├── vite.config.js               # Vite bundler config
+│   ├── eslint.config.js             # ESLint rules
+│   ├── index.html                   # HTML template
+│   └── .env                         # Frontend env vars (VITE_API_BASE_URL)
 │
-├── backend/                           # Node.js/Express Application
-│   ├── routes/                       # API route handlers
-│   │   ├── auth.routes.js            # Authentication endpoints
-│   │   ├── project.routes.js         # Project endpoints
-│   │   ├── task.routes.js            # Task endpoints
-│   │   ├── workspace.routes.js       # Workspace endpoints
-│   │   ├── subscription.routes.js    # Subscription endpoints
-│   │   ├── team.routes.js            # Team management endpoints
-│   │   ├── dashboard.routes.js       # Dashboard endpoints
-│   │   └── comment.routes.js         # Comments endpoints
+├── backend/                          # Node.js/Express REST API
 │   │
-│   ├── controllers/                  # Business logic
-│   │   ├── auth.controller.js        # Auth logic (login, signup, logout)
-│   │   ├── project.controller.js     # Project CRUD operations
-│   │   ├── task.controller.js        # Task CRUD operations
-│   │   ├── workspace.controller.js   # Workspace management logic
-│   │   ├── subscription.controller.js # Subscription handling
-│   │   ├── team.controller.js        # Team management logic
-│   │   ├── dashboard.controller.js   # Dashboard data aggregation
-│   │   └── comment.controller.js     # Comment operations
+│   ├── server.js                    # Express app, route mounting, CORS setup
 │   │
-│   ├── models/                       # MongoDB schemas
-│   │   ├── user.model.js             # User schema
-│   │   ├── workspace.model.js        # Workspace schema
-│   │   ├── workspaceMember.model.js  # Workspace member mapping
-│   │   ├── workspaceInvite.model.js  # Workspace invite tokens
-│   │   ├── project.model.js          # Project schema
-│   │   ├── projectMember.model.js    # Project member mapping
-│   │   ├── task.model.js             # Task schema
-│   │   ├── comment.model.js          # Comment schema
-│   │   └── subscriptionPlan.model.js # Subscription plans
+│   ├── config/
+│   │   └── db.js                     # MongoDB connection via Mongoose
 │   │
-│   ├── middleware/                   # Custom middleware
-│   │   ├── auth.middleware.js        # JWT verification
-│   │   └── workspace.middleware.js   # Workspace & permission checks
+│   ├── routes/                       # Express route definitions
+│   │   ├── auth.routes.js            # POST /auth/signup, /login, GET /profile
+│   │   ├── workspace.routes.js       # Workspace CRUD, invites, members
+│   │   ├── project.routes.js         # Project CRUD, member management
+│   │   ├── task.routes.js            # Task CRUD, queries by project/workspace
+│   │   ├── comment.routes.js         # Comment CRUD on tasks
+│   │   ├── dashboard.routes.js       # GET /stats/:workspaceId
+│   │   ├── team.routes.js            # GET /:workspaceId (team list)
+│   │   └── subscription.routes.js    # GET /plans, POST /upgrade
 │   │
-│   ├── config/                       # Configuration files
-│   │   └── db.js                     # MongoDB connection
+│   ├── controllers/                  # Request handlers & business logic
+│   │   ├── auth.controller.js        # signup, login, getProfile
+│   │   ├── workspace.controller.js   # sendInvite, acceptInvite, getInviteDetails, addMember, etc.
+│   │   ├── project.controller.js     # createProject, getProjects, updateProject, deleteProject, addProjectMember
+│   │   ├── task.controller.js        # createTask, getTasksByProject, getTasksByWorkspace, updateTask, deleteTask
+│   │   ├── comment.controller.js     # getCommentsByTask, createComment, updateComment, deleteComment
+│   │   ├── dashboard.controller.js   # getDashboardStats (projects, tasks, overdue counts)
+│   │   ├── team.controller.js        # getTeamMembers
+│   │   └── subscription.controller.js # upgradeWorkspacePlan, getPlans
 │   │
-│   ├── utils/                        # Utility functions
-│   │   ├── emailService.js           # Email sending logic
-│   │   ├── inviteTokenUtils.js       # Invite token generation
-│   │   ├── subscriptionUtils.js      # Subscription limit checks
-│   │   └── seedData.js               # Database seed data
+│   ├── middleware/                   # Request processing
+│   │   ├── auth.middleware.js        # protect: JWT token verification
+│   │   ├── workspace.middleware.js   # checkWorkspaceAdmin, checkWorkspaceMember, checkProjectPermission, etc.
+│   │   └── subscription.middleware.js # requireActiveSubscription, enforceUsageLimit, requireFeature
 │   │
-│   ├── server.js                     # Express server setup
-│   ├── package.json
-│   └── .env                          # Environment variables
+│   ├── models/                       # Mongoose schemas (11 collections)
+│   │   ├── user.model.js             # User: _id, name, email, password
+│   │   ├── workspace.model.js        # Workspace: _id, name, slug, ownerId, plan
+│   │   ├── workspaceMember.model.js  # WorkspaceMember: userId, workspaceId, role
+│   │   ├── workspaceInvite.model.js  # WorkspaceInvite: email, token, role, status, expiresAt
+│   │   ├── project.model.js          # Project: name, description, priority, status, dates, workspaceId
+│   │   ├── projectMember.model.js    # ProjectMember: userId, projectId
+│   │   ├── task.model.js             # Task: title, status, type, priority, assigneeId, projectId
+│   │   ├── comment.model.js          # Comment: content, userId, taskId
+│   │   ├── subscription.model.js     # Subscription: workspaceId, planId, status, periods
+│   │   ├── subscriptionPlan.model.js # SubscriptionPlan: name, slug, features, maxProjects, maxTasks, maxMembers
+│   │   └── workspaceUsage.model.js   # WorkspaceUsage: workspaceId, counts (projects, tasks, members)
+│   │
+│   ├── utils/                        # Helper functions
+│   │   ├── emailService.js           # sendInviteEmail() using Resend
+│   │   ├── inviteTokenUtils.js       # generateInviteToken(), calculateExpirationDate()
+│   │   ├── subscriptionUtils.js      # getWorkspacePlan(), getActiveSubscription(), isSubscriptionActive(), isFeatureAllowed()
+│   │   ├── usageUtils.js             # syncUsageCounts(), checkAndIncrementUsage(), decrementUsage(), getUsageDoc()
+│   │   └── seedData.js               # seedPlans() - initializes FREE & PRO plans on server start
+│   │
+│   ├── package.json                  # Dependencies (Express, Mongoose, bcryptjs, JWT, etc.)
+│   └── .env                          # Backend env vars (PORT, MONGODB_URI, JWT_SECRET, CLIENT_URL, FRONTEND_URL)
 │
-└── README.md                          # This file
+└── README.md                          # This documentation file
 ```
 
 ---
@@ -316,7 +308,7 @@ Taskflow-A-Project-Management-System/
 ## 🚀 Installation & Setup
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - MongoDB (local or MongoDB Atlas)
 - npm or yarn
 
@@ -332,22 +324,25 @@ cd backend
 npm install
 ```
 
-3. **Create .env file**
+3. **Create `.env` file** in backend folder:
 ```env
-PORT=5000
+PORT=8000
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/taskflow
-JWT_SECRET=your_secret_key_here
+JWT_SECRET=your_jwt_secret_key_here
 CLIENT_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 ```
 
 4. **Start the server**
 ```bash
-npm start
-# or for development with auto-reload
+# Development mode with auto-reload
 npm run dev
+
+# Production mode
+npm start
 ```
 
-The backend will run on `http://localhost:5000`
+The backend API will run on `http://localhost:8000` with routes at `http://localhost:8000/api`
 
 ### Frontend Setup
 
@@ -361,9 +356,9 @@ cd frontend
 npm install
 ```
 
-3. **Create .env file**
+3. **Create `.env` file** in frontend folder:
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
 4. **Start the development server**
@@ -373,348 +368,25 @@ npm run dev
 
 The frontend will run on `http://localhost:5173`
 
----
+### Quick Start (Both)
 
-## 💾 Database Schema
+Open two terminals:
 
-### ER Diagram
-```mermaid
-erDiagram
-  USER ||--o{ WORKSPACE : owns
-  WORKSPACE ||--o{ WORKSPACEMEMBER : has
-  USER ||--o{ WORKSPACEMEMBER : belongs_to
-  WORKSPACE ||--o{ PROJECT : contains
-  PROJECT ||--o{ TASK : contains
-  TASK ||--o{ COMMENT : has
-  WORKSPACE ||--o{ SUBSCRIPTION : has
-  SUBSCRIPTION }o--|| SUBSCRIPTIONPLAN : uses
-  WORKSPACE ||--|| WORKSPACEUSAGE : tracks
-  PROJECT ||--o{ PROJECTMEMBER : includes
-  USER ||--o{ PROJECTMEMBER : assigned
+**Terminal 1 - Backend**
+```bash
+cd backend
+npm install
+npm run dev
 ```
 
-### User Collection
-```javascript
-{
-  _id: ObjectId,
-  name: String,
-  email: String (unique),
-  password: String (hashed),
-  workspaces: [ObjectId], // References to Workspace
-  createdAt: Date,
-  updatedAt: Date
-}
+**Terminal 2 - Frontend**
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-### Workspace Collection
-```javascript
-{
-  _id: ObjectId,
-  name: String,
-  owner: ObjectId, // Reference to User
-  plan: ObjectId, // Reference to SubscriptionPlan
-  members: [ObjectId], // References to WorkspaceMember
-  projects: [ObjectId], // References to Project
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### Project Collection
-```javascript
-{
-  _id: ObjectId,
-  name: String,
-  description: String,
-  workspaceId: ObjectId, // Reference to Workspace
-  status: String, // PLANNING, IN_PROGRESS, COMPLETED
-  priority: String, // HIGH, MEDIUM, LOW
-  start_date: Date,
-  end_date: Date,
-  team_lead: String,
-  progress: Number, // 0-100
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### Task Collection
-```javascript
-{
-  _id: ObjectId,
-  title: String,
-  description: String,
-  projectId: ObjectId, // Reference to Project
-  workspaceId: ObjectId, // Reference to Workspace
-  assigneeId: ObjectId, // Reference to User
-  status: String, // TODO, IN_PROGRESS, COMPLETED
-  priority: String, // HIGH, MEDIUM, LOW
-  type: String, // FEATURE, BUG, IMPROVEMENT
-  due_date: Date,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### Comment Collection
-```javascript
-{
-  _id: ObjectId,
-  content: String,
-  taskId: ObjectId, // Reference to Task
-  authorId: ObjectId, // Reference to User
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### SubscriptionPlan Collection
-```javascript
-{
-  _id: ObjectId,
-  name: String, // "Free Plan" or "Pro Plan"
-  slug: String, // "FREE" or "PRO"
-  features: [String],
-  maxProjects: Number,
-  maxTasks: Number,
-  maxMembers: Number,
-  isDefault: Boolean,
-  price: Number
-}
-```
-
-### Subscription Collection
-```javascript
-{
-  _id: ObjectId,
-  workspaceId: ObjectId, // Reference to Workspace
-  planId: ObjectId, // Reference to SubscriptionPlan
-  status: String, // ACTIVE, EXPIRED
-  periodStart: Date,
-  periodEnd: Date,
-  canceledAt: Date,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### WorkspaceUsage Collection
-```javascript
-{
-  _id: ObjectId,
-  workspaceId: ObjectId, // Reference to Workspace
-  counts: {
-    projects: Number,
-    tasks: Number,
-    members: Number
-  },
-  lastSyncedAt: Date,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
----
-
-## 🔌 API Documentation
-
-### Base URL
-`http://localhost:5000/api`
-
-### Authentication Endpoints
-
-#### Register User
-```
-POST /auth/signup
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123"
-}
-
-Response: { message, token, user }
-```
-
-#### Login
-```
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-
-Response: { message, token, user }
-```
-
-### Project Endpoints
-
-#### Get All Projects
-```
-GET /projects/get/:workspaceId
-Authorization: Bearer <token>
-
-Response: [{ project objects }]
-```
-
-#### Create Project (Admin only)
-```
-POST /projects/add
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "name": "Website Redesign",
-  "description": "Redesign company website",
-  "workspaceId": "workspace_id",
-  "status": "PLANNING",
-  "priority": "HIGH"
-}
-
-Response: { project object }
-```
-
-#### Update Project
-```
-PUT /projects/update/:projectId
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "name": "Updated name",
-  "status": "IN_PROGRESS"
-}
-
-Response: { message, updated project }
-```
-
-#### Delete Project
-```
-DELETE /projects/delete/:projectId
-Authorization: Bearer <token>
-
-Response: { message }
-```
-
-### Task Endpoints
-
-#### Get Tasks by Workspace
-```
-GET /tasks/get/workspace/:workspaceId
-Authorization: Bearer <token>
-
-Response: [{ task objects }]
-```
-
-#### Get Tasks by Project
-```
-GET /tasks/get/project/:projectId
-Authorization: Bearer <token>
-
-Response: [{ task objects }]
-```
-
-#### Create Task (Admin only)
-```
-POST /tasks/add
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "Fix login bug",
-  "projectId": "project_id",
-  "workspaceId": "workspace_id",
-  "status": "TODO",
-  "priority": "HIGH"
-}
-
-Response: { task object }
-```
-
-#### Update Task
-```
-PUT /tasks/update/:taskId
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "status": "IN_PROGRESS",
-  "assigneeId": "user_id"
-}
-
-Response: { message, updated task }
-```
-
-### Workspace Endpoints
-
-#### Get All Workspaces
-```
-GET /workspaces/get
-Authorization: Bearer <token>
-
-Response: [{ workspace objects }]
-```
-
-#### Create Workspace
-```
-POST /workspaces/add
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "name": "Design Team"
-}
-
-Response: { workspace object }
-```
-
-#### Invite Member to Workspace
-```
-POST /workspaces/invite
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "email": "member@example.com",
-  "workspaceId": "workspace_id"
-}
-
-Response: { message, invitation sent }
-```
-
-#### Accept Workspace Invite
-```
-POST /workspaces/accept-invite/:token
-Content-Type: application/json
-
-Response: { message, workspace object }
-```
-
-### Subscription Endpoints
-
-#### Get Subscription Plans
-```
-GET /subscription/plans
-Authorization: Bearer <token>
-
-Response: [{ plan objects }]
-```
-
-#### Update Workspace Plan
-```
-PUT /subscription/upgrade/:workspaceId
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "planId": "pro_plan_id"
-}
-
-Response: { message, updated workspace }
-```
+Visit `http://localhost:5173` and sign up with a new account (which automatically creates a workspace).
 
 ---
 
@@ -722,179 +394,269 @@ Response: { message, updated workspace }
 
 ### Authentication Flow
 
-1. **Registration**
-   - User submits email, name, password
-   - Backend hashes password with bcrypt
-   - Creates user in database
-   - Generates JWT token
+1. **User Signup**
+   - Validates name, email, password, workspace name
+   - Checks for existing user by email
+   - Hashes password with bcryptjs (10 salt rounds) via `pre('save')` hook
+   - Creates new User document
+   - Auto-generates workspace slug (name + random 4-digit suffix)
+   - Creates workspace with owner ID
+   - Assigns workspace owner as ADMIN role WorkspaceMember
+   - Creates default FREE subscription for workspace
+   - Syncs workspace usage counts (initially 0,0,0)
+   - Returns: JWT token (7-day expiry), user object, workspace object
 
-2. **Login**
-   - User submits email, password
-   - Backend verifies password against hash
-   - Generates JWT token
-   - Token stored in frontend localStorage
+2. **User Login**
+   - Verifies email exists and password matches hash
+   - Fetches user's primary workspace and subscription details
+   - Returns: JWT token, user object, workspace with subscription info
 
 3. **Token Usage**
-   - Axios interceptor adds token to Authorization header
-   - Backend verifies token in `auth.middleware`
-   - If valid, request proceeds; if invalid, 401 Unauthorized
+   - Frontend stores JWT in localStorage
+   - Axios interceptor (axiosInstance.js) adds `Authorization: Bearer <token>` to all requests
+   - Backend `protect` middleware in auth.middleware.js verifies and decodes token
+   - If valid, req.user is set; if expired/invalid, returns 401 Unauthorized
+   - 401 responses redirect to /login (except on /login, /signup pages)
 
-4. **Logout**
-   - Frontend clears localStorage
-   - Removes user from Redux state
-   - Redirects to login page
+---
 
-### Authorization Levels
+### Middleware Authorization
 
-#### Workspace Level
-- **ADMIN**: Can create projects, invite members, manage team, upgrade plan
-- **MEMBER**: Can view projects, create/update own tasks, view team
+#### **protect (auth.middleware.js)**
+- Verifies JWT token is valid
+- Extracts user ID and attaches user to request
+- Returns 401 if token missing or invalid
+- Used on all protected routes
 
-#### Project Level
-- **Project Creator/Admin**: Can update project, add members, delete project
-- **Project Member**: Can view project, create/update tasks
+#### **checkWorkspaceAdmin (workspace.middleware.js)**
+- Checks if user is workspace owner OR ADMIN role member
+- Returns 403 if not admin
+- Used for: project creation, member invites, plan upgrades
 
-#### Task Level
-- **Task Assignee**: Can update assigned task, add comments
-- **Project Admin**: Can update any task in project
-- **Workspace Admin**: Can update any task in workspace
+#### **checkWorkspaceMember (workspace.middleware.js)**
+- Checks if user is any member of the workspace
+- Returns 403 if not member
+- Used for: task access, dashboard stats, team list
 
-### Permission Checks
+#### **checkProjectPermission (workspace.middleware.js)**
+- Checks if user is workspace admin  OR  project member
+- Returns 403 if insufficient access
+- Used for: project updates, project member management
 
-```javascript
-// Workspace Admin check
-checkWorkspaceAdmin (middleware)
-  → Verifies user role in workspace === 'ADMIN'
-  → Used for: Project creation, plan upgrades
+#### **checkTaskUpdatePermission (workspace.middleware.js)**
+- Checks if user is task assignee  OR  workspace/project admin
+- Returns 403 if not authorized
+- Used for: task status/details updates
 
-// Project Permission check
-checkProjectPermission (middleware)
-  → Verifies user is in project members or workspace admin
-  → Used for: Project updates, member management
+#### **checkTaskDeletePermission (workspace.middleware.js)**
+- Checks if user is workspace admin
+- Returns 403 if not admin
+- Used for: task deletion
 
-// Task Permission check
-checkTaskUpdatePermission (middleware)
-  → Verifies user is assignee or admin
-  → Used for: Task updates, status changes
-```
+#### **checkTaskMember (workspace.middleware.js)**
+- Checks if user is task assignee OR workspace/project admin OR workspace member
+- Returns 403 if no access
+- Used for: comment operations on tasks
+
+#### **requireActiveSubscription (subscription.middleware.js)**
+- Checks if workspace has active (non-expired) subscription
+- Auto-downgrades to FREE if subscription expired
+- Returns 403 if no subscription
+- Used for: dashboard stats, creating projects/tasks
+
+#### **requireFeature (subscription.middleware.js)**
+- Checks if workspace plan includes the required feature
+- Returns 403 if feature not in plan.features array
+- Used for: feature-gated operations (e.g., ANALYTICS, CALENDAR)
+
+#### **enforceUsageLimit (subscription.middleware.js)**
+- Checks current usage against plan limits
+- If limit is 0, considers unlimited
+- Increments usage counter on success
+- Returns 403 if limit reached
+- Used for: project creation (maxProjects), task creation (maxTasks)
+
+---
+
+### Role-Based Access Control
+
+#### **Workspace Roles**
+- **ADMIN**
+  - Can create projects, tasks
+  - Can invite/remove team members
+  - Can upgrade workspace plan
+  - Can view all workspace projects/tasks
+  - Can manage workspace settings
+
+- **MEMBER**
+  - Can view assigned projects/tasks
+  - Can see projects they're added to
+  - Can view team members
+  - Can comment on tasks
+  - Cannot create projects or invite members
+
+---
+
+### Subscription & Feature Access
+
+#### **Auto-Downgrade on Expiration**
+- Subscription checks in `subscriptionUtils.js` automatically downgrade to FREE plan
+- On expiration (periodEnd < now), creates new FREE subscription
+- Preserves workspace continuity
+
+#### **Usage Limit Enforcement**
+- Tracked in WorkspaceUsage collection
+- Counts: projects, tasks, members
+- Checked during: project creation, task creation, member invites
+- Usage incremented/decremented on create/delete
+- 0 limit = unlimited
 
 ---
 
 ## 📤 Deployment
 
-### Frontend Deployment (Vercel/Netlify)
+## � Backend Implementation Details
 
-1. **Build the project**
-```bash
-cd frontend
-npm run build
-```
+### Server Configuration (server.js)
+- Express v5.2.1 with JSON body parser
+- CORS enabled with configurableorigin (default: *)
+- Routes mounted at `/api/*`
+- Default port: 8000
+- MongoDB connection auto-starts subscription plan seeding
 
-2. **Deploy to Vercel**
-```bash
-npm install -g vercel
-vercel
-```
+### Email Service (utils/emailService.js)
+- Uses Resend email service for sending invitations
+- Sends invite links with 7-day token expiration
+- Includes workspace name and inviter name in email
+- Email failures don't block invite creation (logged)
 
-3. **Set environment variables** in Vercel dashboard
-```env
-VITE_API_URL=https://your-backend-url.com/api
-```
+### Invite Token System (utils/inviteTokenUtils.js)
+- generateInviteToken(): Creates random alphanumeric tokens
+- calculateExpirationDate(days): Sets token TTL (default 7 days)
+- Tokens stored in WorkspaceInvite collection
+- Status tracking: PENDING → ACCEPTED or EXPIRED
 
-### Backend Deployment (Heroku/Railway/Render)
+### Subscription System (utils/subscriptionUtils.js)
+- getActiveSubscription(): Auto-downgrades to FREE on expiration
+- isSubscriptionActive(): Always true (AUTO-DOWNGRADE ensures it)
+- getWorkspacePlan(): Returns current active plan
+- isFeatureAllowed(): Checks plan.features array for feature names
+- All subscriptions have auto-renew on signup
 
-1. **Create Procfile**
-```
-web: node backend/server.js
-```
+### Usage Tracking (utils/usageUtils.js)
+- syncUsageCounts(): Counts actual documents (projects, tasks, members) at runtime
+- checkAndIncrementUsage(): Atomic DB increment with limit check
+- decrementUsage(): Decreases count on delete
+- Limit value 0 = unlimited (always allows)
+- Usage synced on workspace creation and periodically
 
-2. **Set environment variables**
-```env
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-CLIENT_URL=https://your-frontend-url.com
-PORT=5000
-```
+### Permission Model
+- Workspace ownership is automatic (creator = owner)
+- Role-based: ADMIN (can manage), MEMBER (read-only view)
+- Project membership is explicit (ProjectMember records)
+- Task assignees can self-update; admins can update any task
+- Comments have creator-only edit rights
 
-3. **Deploy**
-```bash
-git push heroku main
-```
+### Error Handling
+- 400: Bad request (missing required fields, invalid format)
+- 401: Unauthorized (invalid/missing JWT)
+- 403: Forbidden (insufficient permissions, limits exceeded)
+- 404: Not found (resource doesn't exist)
+- 500: Server error (database/unknown issues)
+- All errors logged to console for debugging
 
-### Database (MongoDB Atlas)
+### Data Integrity
+- UUID for User, Workspace, Project, Task IDs (via uuid or crypto.randomUUID)
+- ObjectId for subscription/comment records
+- Mongoose pre-hooks for password hashing and defaults
+- Index on: Subscription (workspaceId, status), WorkspaceInvite (email, token)
+- Validation: Email format, password length (6+ chars), required fields
 
-1. Create MongoDB Atlas account
-2. Create cluster
-3. Get connection string
-4. Add IP whitelist
-5. Set MONGODB_URI in backend .env
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📝 Project Development Timeline
-
-### Commit History Structure
-```
-1. feat(auth): created authentication with login and signup pages
-2. feat(invite,workspace): created invite system and workspace management
-3. feat: added projects, tasks, dashboard, subscriptions and configuration
-```
-
-### Implemented Features (By Commit)
-- **Auth Commit**: User registration, login, authentication context
-- **Workspace/Invite Commit**: Multi-workspace support, team invitations, member management
-- **Main Commit**: All UI components, state management, API integration, database models
-
----
-
-## 📊 Key Metrics
-
-- **Total Models**: 9 MongoDB collections
-- **API Routes**: 8 feature modules
-- **Frontend Components**: 15+ reusable components
-- **Pages**: 10+ route-based pages
-- **Authentication**: JWT-based with role hierarchies
-- **Subscription Tiers**: 2 (FREE, PRO)
+### Performance Optimizations
+- Lean queries (`.lean()`) used where user data not needed
+- Populate selectively (only needed fields: `'name email'`)
+- Workspace admin check combines owner or ADMIN role (avoid extra queries)
+- Usage counts atomic to prevent race conditions
+- Sorted outputs (comments by createdAt, subscription by periodEnd)
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Backend won't connect to MongoDB
-- Check MONGODB_URI in .env
-- Verify IP whitelist in MongoDB Atlas
+- Check MONGODB_URI in .env is correct
+- Verify IP whitelist in MongoDB Atlas (or allow 0.0.0.0/0)
 - Test connection string in MongoDB Compass
+- Ensure MongoDB service is running (if local)
 
 ### Frontend can't reach backend
-- Check VITE_API_URL matches backend URL
-- Verify backend is running
-- Check CORS settings in backend
+- Check VITE_API_BASE_URL in frontend .env matches backend URL
+- Verify backend is running on correct port (default 8000)
+- Check CORS settings: backend should allow your frontend domain
+- Test API directly: `curl http://localhost:8000/api/auth/profile`
 
 ### JWT token not persisting
-- Check if localStorage is enabled
-- Verify Axios interceptor is configured
-- Check token expiration
+- Check if browser localStorage is enabled
+- Verify Axios interceptor is configured in axiosInstance.js
+- Check token expiration (7 days from issue time)
+- Clear localStorage and re-login if token corrupted
 
-### Permission denied errors
-- Verify user role in workspace
-- Check if user is project member
-- Ensure workspace admin for sensitive operations
+### Permission denied errors (403)
+- Verify user role in workspace (ADMIN vs MEMBER)
+- Check if user is added to project (ProjectMember record)
+- Ensure workspace admin for project/subscription operations
+- Check if user is task assignee for task updates
+
+### Subscription/Usage limit errors
+- Verify workspace has active subscription (non-expired)
+- Check plan limits: 0 = unlimited, specific number = limit
+- Sync usage counts: workspace should auto-sync on creation
+- For FREE plan: typically 0 projects/tasks = unlimited unless seeded otherwise
+
+### Email not sending
+- Check Resend API key is set in env (if using real email)
+- Verify email address format is correct
+- Check spam folder for invite emails
+- Error logs in server console indicate email service issues
+
+### Task/Project not visible
+- If non-admin: verify added to project (ProjectMember record)
+- Check workspace membership (WorkspaceMember record)
+- Admins see all; members see only their assigned items
+- Verify project workspace matches current workspace
 
 ---
 
-## 📄 License
+## ✅ Development Roadmap & Todo List
 
-This project is open source and licensed under the MIT License.
+### Completed Features ✓
+- [✓] User Authentication (Login, Signup, JWT)
+- [✓] Workspace Management (Create, Invite, Role-based Access)
+- [✓] Project Management (CRUD, Member Assignment)
+- [✓] Task Management (Create, Assign, Track Status & Priority)
+- [✓] Subscription System (FREE/PRO tiers with feature limits)
+- [✓] Dashboard & Analytics (Stats, Activity Feed, Charts)
+- [✓] Comments & Collaboration Features
+- [✓] Dark/Light Theme Support
+- [✓] Password Visibility Toggle in Auth Forms
+- [✓] Tenant Isolation at API Level
+- [✓] Role-based Data Filtering (ADMIN/MEMBER)
+- [✓] Project Member Visibility (Show role badges)
+- [✓] Active Tasks Count (Renamed from "My Tasks")
+- [✓] Overdue Task Display
+- [✓] Responsive UI Design
+
+### In Progress / Future Enhancements
+- [ ] Real-time Notifications
+- [ ] Task Dependencies & Gantt Charts
+- [ ] Advanced Reporting & Export (CSV, PDF)
+- [ ] Integration with Third-party Services (Slack, Email)
+- [ ] Mobile App Version
+- [ ] Calendar View Enhancements
+- [ ] Team Performance Analytics
+- [ ] Add option to edit/delete comments for a task
+- [ ] Task Templates
+- [ ] Add razorpay/stripe payment gateway
 
 ---
 
@@ -908,4 +670,4 @@ For support, feature requests, or bug reports, please open an issue in the repos
 
 Built with ❤️ using React, Node.js, Express, and MongoDB.
 
-Last Updated: February 22, 2026
+Last Updated: February 27, 2026
