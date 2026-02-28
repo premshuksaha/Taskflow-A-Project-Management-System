@@ -1,19 +1,29 @@
-const { Resend } = require('resend');
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const axios = require("axios");
 
 const sendInviteEmail = async (email, inviteLink, invitedByName, workspaceName) => {
     try {
-        const response = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'noreply@resend.dev',
-            to: email,
-            subject: `${invitedByName} invited you to join ${workspaceName}`,
-            html: generateInviteTemplate(email, inviteLink, invitedByName, workspaceName)
-        });
-        return response;
+        const response = await axios.post(
+            "https://api.brevo.com/v3/smtp/email",
+            {
+                sender: {
+                    name: "Taskflow",
+                    email: process.env.BREVO_SENDER_EMAIL || "taskflow28022026@gmail.com"
+                },
+                to: [{ email: email }],
+                subject: `${invitedByName} invited you to join ${workspaceName}`,
+                htmlContent: generateInviteTemplate(email, inviteLink, invitedByName, workspaceName)
+            },
+            {
+                headers: {
+                    "api-key": process.env.BREVO_API_KEY,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        return response.data;
     } catch (error) {
-        console.error('Error sending invite email:', error);
-        throw new Error('Failed to send invite email');
+        throw error;
     }
 };
 

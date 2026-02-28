@@ -94,9 +94,8 @@ exports.sendInvite = async (req, res) => {
         try {
             await sendInviteEmail(email, inviteLink, inviterUser.name, workspace.name);
         } catch (emailError) {
-            console.error('Email sending failed:', emailError);
             // Delete the invite if email fails
-            await WorkspaceInvite.deleteOne({ _id: invite._id });
+            await WorkspaceInvite.findByIdAndDelete(invite._id);
             return res.status(500).json({ message: 'Failed to send invite email. Please try again.' });
         }
 
