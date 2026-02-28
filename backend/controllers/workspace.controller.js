@@ -152,10 +152,30 @@ exports.acceptInvite = async (req, res) => {
         // Look for existing user
         let user = await User.findOne({ email: email.toLowerCase() });
 
-        if (!user) {
-            // Create new user if doesn't exist
+        // Check if user is trying to use existing account (no password/name provided)
+        if (!password && !name) {
+            // Existing account flow
+            if (!user) {
+                return res.status(400).json({ message: 'User does not exist. Please create a new account instead.' });
+            }
+
+            // User exists, check if already a member
+            const existingMember = await WorkspaceMember.findOne({
+                userId: user._id,
+                workspaceId: invite.workspaceId._id
+            });
+
+            if (existingMember) {
+                return res.status(400).json({ message: 'User is already a member of this workspace' });
+            }
+        } else {
+            // New account flow - password and name are required
             if (!password || !name) {
-                return res.status(400).json({ message: 'Password and name required for new account' });
+                return res.status(400).json({ message: 'Password and name are required to create a new account' });
+            }
+
+            if (user) {
+                return res.status(400).json({ message: 'User with this email already exists. Please use your existing account.' });
             }
 
             // Validate password
@@ -169,16 +189,6 @@ exports.acceptInvite = async (req, res) => {
                 password
             });
             await user.save();
-        } else {
-            // User exists, check if already a member
-            const existingMember = await WorkspaceMember.findOne({
-                userId: user._id,
-                workspaceId: invite.workspaceId._id
-            });
-
-            if (existingMember) {
-                return res.status(400).json({ message: 'User is already a member of this workspace' });
-            }
         }
 
         const plan = await getWorkspacePlan(invite.workspaceId._id);
