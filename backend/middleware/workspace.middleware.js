@@ -236,42 +236,34 @@ const checkProjectMember = async (req, res, next) => {
  */
 const checkTaskMember = async (req, res, next) => {
     try {
-        const taskId = req.params.taskId || req.body.taskId;
+        const taskId = req.body?.taskId || req.params?.taskId;
         const userId = req.user._id;
 
-        if (!taskId) {
-            return res.status(400).json({ message: 'Task ID is required' });
-        }
+        if (!taskId) return res.status(400).json({ message: 'Task ID is required' });
 
         const task = await Task.findById(taskId);
-        if (!task) {
-            return res.status(404).json({ message: 'Task not found' });
-        }
+        if (!task) return res.status(404).json({ message: 'Task not found' });
 
         const workspaceId = task.workspaceId;
 
-        const workspace = await Workspace.findOne({
-            _id: workspaceId,
-            ownerId: userId
-        });
+        const isOwner = await Workspace.findOne({ _id: workspaceId, ownerId: userId });
+        if (isOwner) return next();
 
-        if (workspace) {
+        const adminMembership = await WorkspaceMember.findOne({
+            workspaceId,
+            userId,
+            role: 'ADMIN'
+        });
+        if (adminMembership) return next();
+
+        if (task.assigneeId && task.assigneeId.toString() === userId.toString()) {
             return next();
         }
 
-        const membership = await WorkspaceMember.findOne({
-            workspaceId,
-            userId
-        });
-
-        if (!membership) {
-            return res.status(403).json({ message: 'You are not a member of this workspace' });
-        }
-
-        next();
+        return res.status(403).json({ message: 'Only admins or assigned members can comment' });
     } catch (error) {
-        console.error('Error checking task membership:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('Error checking comment permission:', error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
 
